@@ -46,6 +46,15 @@ RSNAPSHOT="/usr/bin/rsnapshot"
 # End configuration here.
 ###############################################################################
 
+# Get a config file if specified.
+while getopts "c:" opt; do
+    case $opt in
+        c)
+            source "$OPTARG"
+            ;;
+    esac
+done
+
 # Exit if no volume is specified.
 if [ "$UUID" = "" ]; then
     echo 'No volume specified.'
