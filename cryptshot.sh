@@ -16,10 +16,7 @@
 # appropriate for situations where the external backup volume is not always
 # available to the machine (such as a USB backup drive and a laptop).
 #
-# The script should be called with the rsnapshot interval as the first
-# argument. After it and rsnapshot are configured, simply replacing any
-# instance of 'rsnapshot' in your crontab with 'cryptshot.sh' should do the
-# job.
+# The rsnapshot interval should be passed with the -i argument.
 #
 # Author:   Pig Monkey (pm@pig-monkey.com)
 # Website:  https://github.com/pigmonkey/backups
@@ -46,11 +43,14 @@ RSNAPSHOT="/usr/bin/rsnapshot"
 # End configuration here.
 ###############################################################################
 
-# Get a config file if specified.
-while getopts "c:" opt; do
+# Get any arguments.
+while getopts "c:i:" opt; do
     case $opt in
         c)
             source "$OPTARG"
+            ;;
+        i)
+            INTERVAL=$OPTARG
             ;;
     esac
 done
@@ -74,7 +74,7 @@ if [ "$MOUNTPOINT" = "" ]; then
 fi
 
 # Exit if no interval was specified.
-if [ "$1" = "" ]; then
+if [ -z "$INTERVAL" ]; then
     echo "No interval specified."
     exit 64
 fi
@@ -110,7 +110,7 @@ then
         # If the volume was mounted, run the backup.
         if [ $? -eq 0 ];
         then
-            $RSNAPSHOT $1
+            $RSNAPSHOT "$INTERVAL"
             # Unmount the volume
             umount $MOUNTPOINT
             # If the volume was unmounted and the user has requested that the

@@ -17,11 +17,10 @@ the first step taken is to check if the given volume exists, it is
 appropriate for situations where the external backup volume is not always
 available to the machine (such as a USB backup drive and a laptop).
 
-The script should be called with the rsnapshot interval as the first
-argument. After it and rsnapshot are configured, simply replacing any
-instance of 'rsnapshot' in your crontab with 'cryptshot.sh' should do the
-job.
+The rsnapshot interval should be passed with the -i argument. Cryptshot can
+then replace rsnapshot in your crontab.
 
-    $ cryptshot.sh daily
+    # rsnapshot daily
+    cryptshot.sh -i daily
 
 See source for configuration.
