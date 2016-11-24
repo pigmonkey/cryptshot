@@ -29,9 +29,9 @@ UUID=""
 # Define the location of the LUKS key file.
 KEYFILE=""
 
-# Define the mount point for the backup volume.
+# Define the root of the mount point for the backup volume.
 # This will be created if it does not already exist.
-MOUNTPOINT="/mnt/$UUID"
+MOUNTROOT="/mnt/"
 
 # Any non-zero value here will caused the mount point to be deleted after the
 # volume is unmounted.
@@ -67,9 +67,9 @@ if [ "$KEYFILE" = "" ]; then
     exit 78
 fi
 
-# Exit if no mount point is specified.
-if [ "$MOUNTPOINT" = "" ]; then
-    echo 'No mount point specified.'
+# Exit if no mount root is specified.
+if [ "$MOUNTROOT" = "" ]; then
+    echo 'No mount root specified.'
     exit 78
 fi
 
@@ -78,6 +78,9 @@ if [ -z "$INTERVAL" ]; then
     echo "No interval specified."
     exit 64
 fi
+
+# Create the mount point from the mount root and UUID.
+MOUNTPOINT="$MOUNTROOT$UUID"
 
 # If the mount point does not exist, create it.
 if [ ! -d "$MOUNTPOINT" ]; then
