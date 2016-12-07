@@ -51,12 +51,6 @@ EX_CANTCREAT=73
 EX_NOPERM=77
 EX_CONFIG=78
 
-# Exit if not root
-if [ x"`whoami`" != x"root" ]; then
-    echo 'Not super-user.'
-    exit $EX_NOPERM
-fi
-
 # Check for config file at standard locations (XDG first)
 config=""
 if [ "$XDG_CONFIG_HOME" != "" ] && [ -f "$XDG_CONFIG_HOME/cryptshot.conf" ]; then
@@ -66,7 +60,7 @@ elif [ -f "$HOME/.cryptshot.conf" ]; then
 fi
 
 # Get any arguments.
-while getopts "c:i:" opt; do
+while getopts "c:i:h" opt; do
     case $opt in
         c)
             config="$OPTARG"
@@ -74,8 +68,18 @@ while getopts "c:i:" opt; do
         i)
             INTERVAL=$OPTARG
             ;;
+        h)
+            echo "Usage: $0 -i INTERVAL [ -c CONFIG ]"
+            exit 0
+            ;;
     esac
 done
+
+# Exit if not root
+if [ x"`whoami`" != x"root" ]; then
+    echo 'Not super-user.'
+    exit $EX_NOPERM
+fi
 
 # If a config file is given, use that file
 if [ "$config" != "" ]; then
