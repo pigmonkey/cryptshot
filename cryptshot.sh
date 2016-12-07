@@ -51,6 +51,12 @@ EX_CANTCREAT=73
 EX_NOPERM=77
 EX_CONFIG=78
 
+# Exit if not root
+if [ x"`whoami`" != x"root" ]; then
+    echo 'Not super-user.'
+    exit $EX_NOPERM
+fi
+
 # Get any arguments.
 while getopts "c:i:" opt; do
     case $opt in
