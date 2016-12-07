@@ -76,8 +76,9 @@ if [ "$UUID" = "" ]; then
 fi
 
 # Exit if no key file is specified.
-if [ "$KEYFILE" = "" ]; then
-    echo 'No key file specified.'
+FD_STDIN=1
+if [ "$KEYFILE" = "" ] && [ ! -t $FD_STDIN ]; then
+    echo 'No key file specified and not on terminal for password input.'
     exit $EX_CONFIG
 fi
 
@@ -118,8 +119,12 @@ exitcode=$EX_OK
 # Continue if the volume exists.
 if [ -e $volume ];
 then
-    # Attempt to open the LUKS volume.
-    cryptsetup luksOpen --key-file $KEYFILE $volume $name
+    # Attempt to open the LUKS volume, using keyfile if given.
+    if [ "$KEYFILE" = "" ]; then
+        cryptsetup luksOpen $volume $name
+    else
+        cryptsetup luksOpen --key-file $KEYFILE $volume $name
+    fi
     # If the volume was decrypted, mount it. 
     if [ $? -eq 0 ];
     then
