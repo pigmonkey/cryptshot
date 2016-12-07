@@ -42,41 +42,78 @@ RSNAPSHOT="/usr/bin/rsnapshot"
 
 # End configuration here.
 ###############################################################################
+# define exit codes (from /usr/include/sysexits.h) for code legibility
+# see also: http://tldp.org/LDP/abs/html/exitcodes.html
+EX_OK=0
+EX_USAGE=64
+EX_NOINPUT=66
+EX_CANTCREAT=73
+EX_NOPERM=77
+EX_CONFIG=78
+
+# Check for config file at standard locations (XDG first)
+config=""
+if [ "$XDG_CONFIG_HOME" != "" ] && [ -f "$XDG_CONFIG_HOME/cryptshot.conf" ]; then
+    config="$XDG_CONFIG_HOME/cryptshot.conf"
+elif [ -f "$HOME/.cryptshot.conf" ]; then
+    config="$HOME/.cryptshot.conf"
+fi
 
 # Get any arguments.
-while getopts "c:i:" opt; do
+while getopts "c:i:h" opt; do
     case $opt in
         c)
-            source "$OPTARG"
+            config="$OPTARG"
             ;;
         i)
             INTERVAL=$OPTARG
             ;;
+        h)
+            echo "Usage: $0 -i INTERVAL [ -c CONFIG ]"
+            exit 0
+            ;;
     esac
 done
+
+# Exit if not root
+if [ x"`whoami`" != x"root" ]; then
+    echo 'Not super-user.'
+    exit $EX_NOPERM
+fi
+
+# If a config file is given, use that file
+if [ "$config" != "" ]; then
+    source "$config"
+    exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+        echo 'Failed to source configuration file.'
+        exit $exitcode
+    fi
+fi
 
 # Exit if no volume is specified.
 if [ "$UUID" = "" ]; then
     echo 'No volume specified.'
-    exit 78
+    exit $EX_CONFIG
 fi
 
 # Exit if no key file is specified.
-if [ "$KEYFILE" = "" ]; then
-    echo 'No key file specified.'
-    exit 78
+FD_STDIN=1
+if [ "$KEYFILE" = "" ] && [ ! -t $FD_STDIN ]; then
+    echo 'No key file specified and not on terminal for password input.'
+    exit $EX_CONFIG
 fi
 
 # Exit if no mount root is specified.
 if [ "$MOUNTROOT" = "" ]; then
     echo 'No mount root specified.'
-    exit 78
+    exit $EX_CONFIG
 fi
 
 # Exit if no interval was specified.
 if [ -z "$INTERVAL" ]; then
     echo "No interval specified."
-    exit 64
+    exit $EX_USAGE
 fi
 
 # Create the mount point from the mount root and UUID.
@@ -88,7 +125,7 @@ if [ ! -d "$MOUNTPOINT" ]; then
     # Exit if the mount point was not created.
     if [ $? -ne 0 ]; then
         echo "Failed to create mount point."
-        exit 73
+        exit $EX_CANTCREAT
     fi
 fi
 
@@ -98,14 +135,18 @@ volume="/dev/disk/by-uuid/$UUID"
 # Create a unique name for the LUKS mapping.
 name="crypt-$UUID"
 
-# Set the default exit code to 0.
-exitcode=0
+# Set the default exit code.
+exitcode=$EX_OK
 
 # Continue if the volume exists.
 if [ -e $volume ];
 then
-    # Attempt to open the LUKS volume.
-    cryptsetup luksOpen --key-file $KEYFILE $volume $name
+    # Attempt to open the LUKS volume, using keyfile if given.
+    if [ "$KEYFILE" = "" ]; then
+        cryptsetup luksOpen $volume $name
+    else
+        cryptsetup luksOpen --key-file $KEYFILE $volume $name
+    fi
     # If the volume was decrypted, mount it. 
     if [ $? -eq 0 ];
     then
@@ -132,7 +173,7 @@ then
         echo "Failed to open $volume with key $KEYFILE."
     fi
 else
-    exitcode=33
+    exitcode=$EX_NOINPUT
     echo "Volume $UUID not found."
 fi
 
