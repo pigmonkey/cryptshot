@@ -57,17 +57,35 @@ if [ x"`whoami`" != x"root" ]; then
     exit $EX_NOPERM
 fi
 
+# Check for config file at standard locations (XDG first)
+config=""
+if [ "$XDG_CONFIG_HOME" != "" ] && [ -f "$XDG_CONFIG_HOME/cryptshot.conf" ]; then
+    config="$XDG_CONFIG_HOME/cryptshot.conf"
+elif [ -f "$HOME/.cryptshot.conf" ]; then
+    config="$HOME/.cryptshot.conf"
+fi
+
 # Get any arguments.
 while getopts "c:i:" opt; do
     case $opt in
         c)
-            source "$OPTARG"
+            config="$OPTARG"
             ;;
         i)
             INTERVAL=$OPTARG
             ;;
     esac
 done
+
+# If a config file is given, use that file
+if [ "$config" != "" ]; then
+    source "$config"
+    exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+        echo 'Failed to source configuration file.'
+        exit $exitcode
+    fi
+fi
 
 # Exit if no volume is specified.
 if [ "$UUID" = "" ]; then
