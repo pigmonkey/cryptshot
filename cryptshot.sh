@@ -145,7 +145,7 @@ then
         # If the volume was mounted, run the backup.
         if [ $? -eq 0 ];
         then
-            $BACKUP "$BACKUP_ARGS"
+            $BACKUP $BACKUP_ARGS
             # Unmount the volume
             umount $MOUNTPOINT
             # If the volume was unmounted and the user has requested that the
