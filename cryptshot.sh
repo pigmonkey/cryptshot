@@ -42,7 +42,6 @@ BACKUP="/usr/bin/rsnapshot"
 # define exit codes (from /usr/include/sysexits.h) for code legibility
 # see also: http://tldp.org/LDP/abs/html/exitcodes.html
 EX_OK=0
-EX_USAGE=64
 EX_NOINPUT=66
 EX_CANTCREAT=73
 EX_NOPERM=77
@@ -67,7 +66,7 @@ while getopts "c:i:h" opt; do
             ;;
         h)
             echo "Usage: $0 [ -i BACKUP_ARGS ] [ -c CONFIG ]"
-            exit 0
+            exit $EX_OK
             ;;
     esac
 done
