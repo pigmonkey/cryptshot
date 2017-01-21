@@ -73,7 +73,7 @@ while getopts "c:i:h" opt; do
 done
 
 # Exit if not root
-if [ x"`whoami`" != x"root" ]; then
+if [ x"$(whoami)" != x"root" ]; then
     echo 'Not super-user.'
     exit $EX_NOPERM
 fi
