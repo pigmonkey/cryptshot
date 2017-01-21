@@ -1,22 +1,19 @@
 #!/bin/bash
 #
-# Open and mount a LUKS volume before performing a backup with rsnapshot.
+# Open and mount a LUKS volume before performing a backup.
 #
-# This script first checks to see if a volume with the given UUID exists.
-# If the volume is found, it is treated as a LUKS volume and decrypted with
-# the given key file, after which it is mounted. The script then runs
-# rsnapshot. After the backup is complete, the volume is unmounted and the
+# This script first checks to see if a volume with the given UUID exists.  If
+# the volume is found, it is treated as a LUKS volume and decrypted with the
+# given key file, after which it is mounted. The script then runs the specified
+# backup program. After the backup is complete, the volume is unmounted and the
 # LUKS mapping is removed. Optionally, the mount point can be deleted to
 # complete the clean-up.
 #
-# This provides for a way to achieve encrypted backups to an external drive
-# with a backup tool that does not inherently provide encryption. It can
-# easily be modified to execute a backup program other than rsnapshot. Since
-# the first step taken is to check if the given volume exists, it is
+# Since the first step taken is to check if the given volume exists, it is
 # appropriate for situations where the external backup volume is not always
 # available to the machine (such as a USB backup drive and a laptop).
 #
-# The rsnapshot interval should be passed with the -i argument.
+# If using rsnapshot, the interval should be passed with the -i argument.
 #
 # Author:   Pig Monkey (pm@pig-monkey.com)
 # Website:  https://github.com/pigmonkey/backups
@@ -37,8 +34,8 @@ MOUNTROOT="/mnt/"
 # volume is unmounted.
 REMOVEMOUNT=1
 
-# Define the location of rsnapshot.
-RSNAPSHOT="/usr/bin/rsnapshot"
+# Define the location of the backup program.
+BACKUP="/usr/bin/rsnapshot"
 
 # End configuration here.
 ###############################################################################
@@ -66,10 +63,10 @@ while getopts "c:i:h" opt; do
             config="$OPTARG"
             ;;
         i)
-            INTERVAL=$OPTARG
+            BACKUP_ARGS=$OPTARG
             ;;
         h)
-            echo "Usage: $0 -i INTERVAL [ -c CONFIG ]"
+            echo "Usage: $0 [ -i BACKUP_ARGS ] [ -c CONFIG ]"
             exit 0
             ;;
     esac
@@ -110,12 +107,6 @@ if [ "$MOUNTROOT" = "" ]; then
     exit $EX_CONFIG
 fi
 
-# Exit if no interval was specified.
-if [ -z "$INTERVAL" ]; then
-    echo "No interval specified."
-    exit $EX_USAGE
-fi
-
 # Create the mount point from the mount root and UUID.
 MOUNTPOINT="$MOUNTROOT$UUID"
 
@@ -154,7 +145,7 @@ then
         # If the volume was mounted, run the backup.
         if [ $? -eq 0 ];
         then
-            $RSNAPSHOT "$INTERVAL"
+            $BACKUP $BACKUP_ARGS
             # Unmount the volume
             umount $MOUNTPOINT
             # If the volume was unmounted and the user has requested that the
