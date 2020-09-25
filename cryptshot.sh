@@ -149,10 +149,8 @@ then
             umount $MOUNTPOINT
             # If the volume was unmounted and the user has requested that the
             # mount point be removed, remove it.
-            if [ $? -eq 0 ] && [ $REMOVEMOUNT -ne 0 ]; then
-                if [ -d $MOUNTPOINT ];then 
-                   rmdir $MOUNTPOINT
-                fi
+            if [ $? -eq 0 ] && [ $REMOVEMOUNT -ne 0 ] && [ -d $MOUNTPOINT ]; then
+                rmdir $MOUNTPOINT
             fi
         else
             exitcode=$?
