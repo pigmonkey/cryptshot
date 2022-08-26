@@ -119,6 +119,12 @@ if [ ! -d "$MOUNTPOINT" ]; then
     fi
 fi
 
+# Exit if backup program is not executable.
+if [ ! -x "$BACKUP" ]; then
+    echo 'Backup program not existing or not executable.'
+    exit $EX_CONFIG
+fi
+
 # Build the reference to the volume.
 volume="/dev/disk/by-uuid/$UUID"
 
