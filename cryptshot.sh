@@ -146,7 +146,7 @@ then
     # If the volume was decrypted, mount it. 
     if [ $? -eq 0 ];
     then
-        mount /dev/mapper/$name $MOUNTPOINT
+        mount --options noatime /dev/mapper/$name $MOUNTPOINT
         # If the volume was mounted, run the backup.
         if [ $? -eq 0 ];
         then
