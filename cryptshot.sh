@@ -119,9 +119,11 @@ if [ ! -d "$MOUNTPOINT" ]; then
     fi
 fi
 
-# Exit if backup program is not executable.
-if [ ! -x "$BACKUP" ]; then
-    echo 'Backup program not existing or not executable.'
+# Exit if backup program is not executable. Assume the executable is everything
+# up to the first space.
+BACKUP_EX=${BACKUP%%[[:space:]]*}
+if [ ! -x "$BACKUP_EX" ]; then
+    echo "Backup program does not exist or is not executable: $BACKUP_EX"
     exit $EX_CONFIG
 fi
 
